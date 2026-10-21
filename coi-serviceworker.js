@@ -77,6 +77,15 @@ if (typeof window === 'undefined') {
             return;
         }
 
+        // Let Godot's JavaScript, worker, pack, audio and image files load
+        // directly from the host. Intercepting those responses can make
+        // WorkerGlobalScope.importScripts() reject FirstGame.js on Vercel.
+        // Navigation responses are the only other responses that need
+        // isolation headers for hosts such as GitHub Pages.
+        if (r.mode !== "navigate") {
+            return;
+        }
+
         const request = (coepCredentialless && r.mode === "no-cors")
             ? new Request(r, {
                 credentials: "omit",
