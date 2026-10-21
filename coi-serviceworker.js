@@ -170,17 +170,15 @@ if (typeof window === 'undefined') {
             (registration) => {
                 !coi.quiet && console.log("COOP/COEP Service Worker registered", registration.scope);
 
-                registration.addEventListener("updatefound", () => {
-                    !coi.quiet && console.log("Reloading page to make use of updated COOP/COEP Service Worker.");
-                    window.sessionStorage.setItem("coiReloadedBySelf", "updatefound");
-                    coi.doReload();
-                });
-
-                // If the registration is active, but it's not controlling the page
-                if (registration.active && !n.serviceWorker.controller) {
-                    !coi.quiet && console.log("Reloading page to make use of COOP/COEP Service Worker.");
-                    window.sessionStorage.setItem("coiReloadedBySelf", "notcontrolling");
-                    coi.doReload();
+                // On a first visit, wait until the worker is active before reloading.
+                // Reloading as soon as `updatefound` fires is too early: Godot would
+                // request FirstGame.wasm before the worker could rebuild it.
+                if (!n.serviceWorker.controller) {
+                    n.serviceWorker.ready.then(() => {
+                        !coi.quiet && console.log("Reloading page to use the split-WASM Service Worker.");
+                        window.sessionStorage.setItem("coiReloadedBySelf", "notcontrolling");
+                        coi.doReload();
+                    });
                 }
             },
             (err) => {
