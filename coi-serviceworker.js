@@ -89,6 +89,16 @@ if (typeof window === 'undefined') {
                         return response;
                     }
 
+                    // Vercel already adds these headers through vercel.json.
+                    // Keep its original response intact so Web Worker
+                    // importScripts() can load FirstGame.js normally.
+                    if (
+                        response.headers.has("Cross-Origin-Embedder-Policy") &&
+                        response.headers.has("Cross-Origin-Opener-Policy")
+                    ) {
+                        return response;
+                    }
+
                     const newHeaders = withIsolationHeaders(response.headers);
 
                     return new Response(response.body, {
