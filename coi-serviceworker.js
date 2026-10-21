@@ -149,9 +149,11 @@ if (typeof window === 'undefined') {
             }
         }
 
-        // If we're already coi: do nothing. Perhaps it's due to this script doing its job, or COOP/COEP are
-        // already set from the origin server. Also if the browser has no notion of crossOriginIsolated, just give up here.
-        if (window.crossOriginIsolated !== false || !coi.shouldRegister()) return;
+        // Always register this worker when needed. Besides adding COOP/COEP headers,
+        // it rebuilds FirstGame.wasm from the split files used by browser uploads.
+        // Vercel already supplies isolation headers, but the worker is still needed
+        // to serve the reconstructed WebAssembly file.
+        if (!coi.shouldRegister()) return;
 
         if (!window.isSecureContext) {
             !coi.quiet && console.log("COOP/COEP Service Worker not registered, a secure context is required.");
@@ -187,3 +189,4 @@ if (typeof window === 'undefined') {
         );
     })();
 }
+
